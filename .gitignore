@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Glory Days Past — user-uploaded item photos (MEDIA_ROOT) and generated
+# thumbnails (MEDIA_ROOT/CACHE). Stored on disk, backed up separately in
+# production (see config/settings.py), and never committed to git.
+/media/

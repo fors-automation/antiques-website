@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'imagekit',
     'shop',
 ]
 
@@ -128,6 +129,28 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Media files (item photos uploaded by the owner via the admin)
+# https://docs.djangoproject.com/en/6.0/topics/files/
+#
+# Uploaded photos are stored on the local disk under MEDIA_ROOT.
+#   - Development: Django serves them via the static() helper in config/urls.py
+#     (active only when DEBUG=True).
+#   - Production: Django does NOT serve media. Nginx serves MEDIA_ROOT directly
+#     with a `location /media/ { alias <MEDIA_ROOT>/; }` block (see deploy step).
+#
+# >>> BACKUPS: MEDIA_ROOT MUST be included in production backups. <<<
+# A database dump alone will NOT restore the shop — the item photos live here on
+# disk, not in PostgreSQL. Back up MEDIA_ROOT alongside the pg_dump, on the same
+# schedule. (Generated thumbnails under MEDIA_ROOT/CACHE are regenerable from the
+# originals, but the original uploads are irreplaceable.)
+MEDIA_URL = 'media/'
+
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# django-imagekit: generated thumbnails are cached on disk under
+# MEDIA_ROOT/CACHE and created lazily on first access (JustInTime strategy).
+# They are derived from the original uploads, so they need no separate backup.
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
