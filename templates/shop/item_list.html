@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{% if category %}{{ category.name }}{% else %}Browse{% endif %} — Glory Days Past{% endblock %}
+
+{% block content %}
+<header class="page-head">
+    <h1>{% if category %}{{ category.name }}{% else %}The Collection{% endif %}</h1>
+</header>
+
+<nav class="category-nav">
+    <a href="{% url 'shop:item_list' %}{% if show_sold %}?sold=1{% endif %}"
+       class="{% if not category %}is-active{% endif %}">All</a>
+    {% for cat in categories %}
+        <a href="{% url 'shop:category' cat.slug %}{% if show_sold %}?sold=1{% endif %}"
+           class="{% if category and category.pk == cat.pk %}is-active{% endif %}">{{ cat.name }}</a>
+    {% endfor %}
+</nav>
+
+{% if page_obj.object_list %}
+<div class="grid">
+    {% for item in page_obj %}
+        {% include "shop/_item_card.html" %}
+    {% endfor %}
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?{% if show_sold %}sold=1&amp;{% endif %}page={{ page_obj.previous_page_number }}">&larr; Previous</a>
+    {% endif %}
+    <span class="pagination__status">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?{% if show_sold %}sold=1&amp;{% endif %}page={{ page_obj.next_page_number }}">Next &rarr;</a>
+    {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<p class="empty">
+    {% if show_sold %}
+        No items to show yet.
+    {% else %}
+        Nothing available here right now. Please check back soon.
+    {% endif %}
+</p>
+{% endif %}
+
+<div class="sold-toggle">
+    {% if show_sold %}
+        <a href="{% if category %}{{ category.get_absolute_url }}{% else %}{% url 'shop:item_list' %}{% endif %}">Hide sold items</a>
+    {% else %}
+        <a href="{% if category %}{{ category.get_absolute_url }}{% else %}{% url 'shop:item_list' %}{% endif %}?sold=1">View sold items</a>
+    {% endif %}
+</div>
+{% endblock %}

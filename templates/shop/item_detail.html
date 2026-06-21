@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} — Glory Days Past{% endblock %}
+{% block meta_description %}{{ item.title }} — {{ item.display_price }}{% if item.era %}, {{ item.era }}{% endif %}. {{ item.description|striptags|truncatewords:25 }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+    <a href="{% url 'shop:item_list' %}">Collection</a>
+    <span class="breadcrumb__sep">&rsaquo;</span>
+    <a href="{{ item.category.get_absolute_url }}">{{ item.category.name }}</a>
+    <span class="breadcrumb__sep">&rsaquo;</span>
+    <span class="breadcrumb__current">{{ item.title }}</span>
+</nav>
+
+<article class="detail">
+    <div class="detail-gallery">
+        {% with photos=item.images.all %}
+            {% if photos %}
+            <figure class="gallery-main{% if item.is_sold %} is-sold{% endif %}">
+                <img id="gallery-main-img"
+                     src="{{ photos.0.detail_image.url }}"
+                     alt="{{ photos.0.alt_text|default:item.title }}">
+                {% if item.is_sold %}
+                    <span class="badge badge--sold badge--overlay">Sold</span>
+                {% elif item.is_reserved %}
+                    <span class="badge badge--reserved badge--overlay">Reserved</span>
+                {% endif %}
+            </figure>
+            {% if photos|length > 1 %}
+            <div class="gallery-thumbs">
+                {% for photo in photos %}
+                <button type="button"
+                        class="gallery-thumb{% if forloop.first %} is-active{% endif %}"
+                        data-full="{{ photo.detail_image.url }}">
+                    <img src="{{ photo.thumbnail.url }}" alt="{{ photo.alt_text|default:item.title }}">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="gallery-main gallery-main--empty">No photographs available</div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="detail-info">
+        <h1 class="detail-title">{{ item.title }}</h1>
+
+        <p class="detail-price">
+            {{ item.display_price }}
+            {% if item.is_sold %}
+                <span class="badge badge--sold">Sold</span>
+            {% elif item.is_reserved %}
+                <span class="badge badge--reserved">Reserved</span>
+            {% else %}
+                <span class="badge badge--available">Available</span>
+            {% endif %}
+        </p>
+
+        {% if item.description %}
+        <div class="detail-desc">{{ item.description|linebreaks }}</div>
+        {% endif %}
+
+        <dl class="detail-specs">
+            <dt>Category</dt>
+            <dd><a href="{{ item.category.get_absolute_url }}">{{ item.category.name }}</a></dd>
+            {% if item.condition %}<dt>Condition</dt><dd>{{ item.get_condition_display }}</dd>{% endif %}
+            {% if item.era %}<dt>Era / Period</dt><dd>{{ item.era }}</dd>{% endif %}
+            {% if item.dimensions %}<dt>Dimensions</dt><dd>{{ item.dimensions }}</dd>{% endif %}
+            {% if item.provenance %}<dt>Provenance</dt><dd>{{ item.provenance|linebreaks }}</dd>{% endif %}
+        </dl>
+
+        {% if item.is_sold %}
+        <p class="inquiry-sold">
+            This piece has found a new home.
+            <a href="{% url 'shop:item_list' %}">Browse available items &rarr;</a>
+        </p>
+        {% else %}
+        <section class="inquiry">
+            <h2>Ask about this piece</h2>
+            <p class="inquiry-intro">Questions about condition, history, or arranging a purchase? Send us a note.</p>
+            <form method="post" class="inquiry-form" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <p class="field">
+                    {{ form.name.label_tag }}
+                    {{ form.name }}
+                    {{ form.name.errors }}
+                </p>
+                <p class="field">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </p>
+                <p class="field">
+                    {{ form.message.label_tag }}
+                    {{ form.message }}
+                    {{ form.message.errors }}
+                </p>
+                <button type="submit" class="button">Send inquiry</button>
+            </form>
+        </section>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll('.gallery-thumb').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('gallery-main-img').src = btn.getAttribute('data-full');
+            document.querySelectorAll('.gallery-thumb').forEach(function (b) {
+                b.classList.remove('is-active');
+            });
+            btn.classList.add('is-active');
+        });
+    });
+</script>
+{% endblock %}

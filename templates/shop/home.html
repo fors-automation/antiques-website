@@ -3,10 +3,38 @@
 {% block title %}Glory Days Past — Antiques &amp; Curiosities{% endblock %}
 
 {% block content %}
-<section class="hero">
+<section class="hero hero--home">
     <h1>Glory Days Past</h1>
     <p class="lead">Carefully curated antiques, vintage finds, and one-of-a-kind curiosities.</p>
-    <p>Our online shop is being lovingly arranged. Treasures are coming soon.</p>
-    <a class="button" href="{% url 'shop:contact' %}">Get in touch</a>
+    <a class="button" href="{% url 'shop:item_list' %}">Browse the collection</a>
+</section>
+
+{% if featured_items %}
+<section class="section">
+    <div class="section-head">
+        <h2>Featured</h2>
+    </div>
+    <div class="grid">
+        {% for item in featured_items %}
+            {% include "shop/_item_card.html" %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="section">
+    <div class="section-head">
+        <h2>Recently added</h2>
+        <a class="section-link" href="{% url 'shop:item_list' %}">View all &rarr;</a>
+    </div>
+    {% if recent_items %}
+    <div class="grid">
+        {% for item in recent_items %}
+            {% include "shop/_item_card.html" %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">New pieces are on their way. Please check back soon.</p>
+    {% endif %}
 </section>
 {% endblock %}

@@ -1,9 +1,12 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from imagekit.models import ImageSpecField
 from pilkit.processors import ResizeToFit
+
+CURRENCY_SYMBOLS = {'USD': '$', 'GBP': '£', 'EUR': '€'}
 
 
 class Category(models.Model):
@@ -16,6 +19,9 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('shop:category', args=[self.slug])
 
 
 class Item(models.Model):
@@ -33,44 +39,77 @@ class Item(models.Model):
         POOR = 'poor', 'Poor'
         FOR_RESTORATION = 'for_restoration', 'For restoration'
 
-    title = models.CharField(max_length=200)
+    title = models.CharField(
+        max_length=200,
+        help_text="The name of the piece as it will appear on the website.",
+    )
     slug = models.SlugField(max_length=220, unique=True, blank=True)
-    description = models.TextField(blank=True)
+    description = models.TextField(
+        blank=True,
+        help_text="Describe the piece and its story — anything a buyer would "
+                  "like to know. This shows on the item's page.",
+    )
     category = models.ForeignKey(
         Category,
         on_delete=models.PROTECT,
         related_name='items',
+        help_text="Choose a category. You can add new categories under "
+                  "“Categories” on the main admin page.",
     )
     # Money is stored as Decimal, never float. Currency is recorded explicitly.
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default='USD')
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Selling price, numbers only (for example 249.99).",
+    )
+    currency = models.CharField(
+        max_length=3,
+        default='USD',
+        help_text="3-letter currency code. Leave as USD unless you price in "
+                  "another currency.",
+    )
     status = models.CharField(
         max_length=20,
         choices=Status,
         default=Status.AVAILABLE,
+        help_text="“Available” = for sale. “Reserved” = on hold for someone. "
+                  "“Sold” = sold — this is permanent and can't be undone.",
     )
     condition = models.CharField(
         max_length=20,
         choices=Condition,
         blank=True,
+        help_text="Overall condition of the piece (optional).",
     )
     era = models.CharField(
         max_length=100,
         blank=True,
-        help_text='Period or era, e.g. "Victorian", "Art Deco", "1960s".',
+        help_text='Period or era, for example "Victorian", "Art Deco", or "1960s".',
     )
     dimensions = models.CharField(
         max_length=255,
         blank=True,
-        help_text='Free text, e.g. "H 90 × W 45 × D 30 cm".',
+        help_text='Size of the piece, for example "H 90 × W 45 × D 30 cm".',
     )
     provenance = models.TextField(
         blank=True,
-        help_text='History or origin notes for this piece.',
+        help_text="Where it came from or its history, if known.",
     )
-    featured = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    sold_at = models.DateTimeField(null=True, blank=True)
+    featured = models.BooleanField(
+        default=False,
+        verbose_name="feature on homepage",
+        help_text="Tick to highlight this item in the featured section.",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="date added",
+    )
+    sold_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="date sold",
+        help_text="Filled in automatically when the item is marked sold.",
+    )
 
     class Meta:
         ordering = ['-created_at']
@@ -81,6 +120,28 @@ class Item(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('shop:item', args=[self.slug])
+
+    @property
+    def display_price(self):
+        symbol = CURRENCY_SYMBOLS.get(self.currency)
+        if symbol:
+            return f'{symbol}{self.price:,.2f}'
+        return f'{self.price:,.2f} {self.currency}'
+
+    @property
+    def is_available(self):
+        return self.status == self.Status.AVAILABLE
+
+    @property
+    def is_reserved(self):
+        return self.status == self.Status.RESERVED
+
+    @property
+    def is_sold(self):
+        return self.status == self.Status.SOLD
 
     def _previous_status(self):
         """The status currently stored in the DB, or None for unsaved items."""
@@ -127,7 +188,11 @@ class ItemImage(models.Model):
     )
     # The full-resolution upload is the source of truth and must be backed up
     # (see MEDIA_ROOT note in settings). The owner uploads large phone photos.
-    image = models.ImageField(upload_to='items/%Y/%m/')
+    image = models.ImageField(
+        upload_to='items/%Y/%m/',
+        help_text="Upload a photo. Large phone photos are fine — small "
+                  "versions for the website are made automatically.",
+    )
 
     # Derived, on-the-fly thumbnails (django-imagekit). These are NOT database
     # columns and need no migration; files are generated on first access and
@@ -152,9 +217,14 @@ class ItemImage(models.Model):
     alt_text = models.CharField(
         max_length=200,
         blank=True,
-        help_text='Short description of the photo for accessibility and SEO.',
+        help_text="A few words describing the photo (helps search engines and "
+                  "visually-impaired visitors). Optional.",
     )
-    sort_order = models.PositiveIntegerField(default=0)
+    sort_order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="display order",
+        help_text="Lower numbers show first (0, 1, 2 …).",
+    )
 
     class Meta:
         ordering = ['sort_order', 'id']

@@ -1,0 +1,22 @@
+{% comment %}Reusable item card. Expects `item` in context. {% endcomment %}
+<a class="card{% if item.is_sold %} card--sold{% endif %}" href="{{ item.get_absolute_url }}">
+    <div class="card-media">
+        {% with photo=item.images.all|first %}
+            {% if photo %}
+                <img src="{{ photo.thumbnail.url }}" alt="{{ photo.alt_text|default:item.title }}" loading="lazy">
+            {% else %}
+                <div class="card-media__placeholder">No photo yet</div>
+            {% endif %}
+        {% endwith %}
+        {% if item.is_sold %}
+            <span class="badge badge--sold badge--overlay">Sold</span>
+        {% elif item.is_reserved %}
+            <span class="badge badge--reserved badge--overlay">Reserved</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <h3 class="card-title">{{ item.title }}</h3>
+        <p class="card-meta">{{ item.category.name }}</p>
+        <p class="card-price">{{ item.display_price }}</p>
+    </div>
+</a>
