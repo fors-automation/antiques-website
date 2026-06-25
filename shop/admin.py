@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.utils.html import format_html
 
-from .models import Category, Inquiry, Item, ItemImage
+from .models import Article, Category, Inquiry, Item, ItemImage
 
 # Friendly branding for the owner's management interface.
 admin.site.site_header = 'Glory Days Past'
@@ -142,3 +142,25 @@ class InquiryAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         # Inquiries are created by customers via the site, not added by hand.
         return False
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    list_display = ('title', 'status', 'published_at', 'updated_at')
+    list_filter = ('status',)
+    list_editable = ('status',)
+    search_fields = ('title', 'intro', 'body')
+    prepopulated_fields = {'slug': ('title',)}
+    date_hierarchy = 'published_at'
+    readonly_fields = ('created_at', 'updated_at', 'published_at')
+    save_on_top = True
+    fieldsets = (
+        ('Write your article', {
+            'fields': ('title', 'intro', 'header_image', 'body', 'status'),
+        }),
+        ('Housekeeping', {
+            'classes': ('collapse',),
+            'description': "Filled in automatically — you can usually ignore this.",
+            'fields': ('slug', 'published_at', 'created_at', 'updated_at'),
+        }),
+    )

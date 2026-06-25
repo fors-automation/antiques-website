@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'imagekit',
+    'tinymce',
     'shop',
 ]
 
@@ -156,3 +157,20 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Rich-text editor (django-tinymce) for writing Information articles in the admin.
+# Self-hosted from the package's bundled static files — no API key or CDN.
+# A deliberately small toolbar keeps the editor friendly for a non-technical writer.
+TINYMCE_DEFAULT_CONFIG = {
+    'height': 420,
+    'menubar': False,
+    'branding': False,
+    'promotion': False,
+    'plugins': 'autoresize lists link',
+    'toolbar': (
+        'undo redo | blocks | bold italic | bullist numlist | '
+        'link blockquote | removeformat'
+    ),
+    'block_formats': 'Paragraph=p; Heading=h2; Subheading=h3',
+}

@@ -2,9 +2,11 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.text import slugify
+from django.utils.html import strip_tags
+from django.utils.text import Truncator, slugify
 from imagekit.models import ImageSpecField
 from pilkit.processors import ResizeToFit
+from tinymce.models import HTMLField
 
 CURRENCY_SYMBOLS = {'USD': '$', 'GBP': '£', 'EUR': '€'}
 
@@ -256,3 +258,91 @@ class Inquiry(models.Model):
 
     def __str__(self):
         return f'{self.name} <{self.email}>'
+
+
+class Article(models.Model):
+    """An article the owner writes for the public 'Information' section."""
+
+    class Status(models.TextChoices):
+        DRAFT = 'draft', 'Draft'
+        PUBLISHED = 'published', 'Published'
+
+    title = models.CharField(
+        max_length=200,
+        help_text="The article's headline, as it will appear on the website.",
+    )
+    slug = models.SlugField(
+        max_length=220,
+        unique=True,
+        blank=True,
+        help_text="Filled in automatically from the title.",
+    )
+    intro = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="A short summary shown in the article list (optional — if left "
+                  "blank, the start of the article is used).",
+    )
+    header_image = models.ImageField(
+        upload_to='articles/%Y/%m/',
+        blank=True,
+        help_text="Optional photo shown at the top of the article and in the list.",
+    )
+    card_image = ImageSpecField(
+        source='header_image',
+        processors=[ResizeToFit(600, 400, upscale=False)],
+        format='JPEG',
+        options={'quality': 80},
+    )
+    banner_image = ImageSpecField(
+        source='header_image',
+        processors=[ResizeToFit(1600, 900, upscale=False)],
+        format='JPEG',
+        options={'quality': 85},
+    )
+    body = HTMLField(blank=True, help_text="Write your article here.")
+    status = models.CharField(
+        max_length=20,
+        choices=Status,
+        default=Status.DRAFT,
+        help_text="“Draft” is only visible to you. “Published” shows on the website.",
+    )
+    published_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="date published",
+        help_text="Filled in automatically the first time the article is published.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="date created")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="last updated")
+
+    class Meta:
+        ordering = ['-published_at', '-created_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['slug']),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('shop:article', args=[self.slug])
+
+    @property
+    def is_published(self):
+        return self.status == self.Status.PUBLISHED
+
+    @property
+    def summary(self):
+        if self.intro:
+            return self.intro
+        return Truncator(strip_tags(self.body)).words(40, truncate='…')
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        # Stamp the publish date the first time it goes live.
+        if self.status == self.Status.PUBLISHED and self.published_at is None:
+            self.published_at = timezone.now()
+        super().save(*args, **kwargs)

@@ -1,10 +1,11 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Case, IntegerField, When
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import InquiryForm
-from .models import Category, Item
+from .models import Article, Category, Item
 
 
 def home(request):
@@ -73,6 +74,20 @@ def item_detail(request, slug):
         'item': item,
         'form': form,
     })
+
+
+def article_list(request):
+    articles = Article.objects.filter(status=Article.Status.PUBLISHED)
+    page_obj = Paginator(articles, 10).get_page(request.GET.get('page'))
+    return render(request, 'shop/article_list.html', {'page_obj': page_obj})
+
+
+def article_detail(request, slug):
+    article = get_object_or_404(Article, slug=slug)
+    # Drafts are visible only to staff (so the owner can preview before publishing).
+    if not article.is_published and not request.user.is_staff:
+        raise Http404('Article not found')
+    return render(request, 'shop/article_detail.html', {'article': article})
 
 
 def contact(request):

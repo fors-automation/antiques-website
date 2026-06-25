@@ -1,0 +1,18 @@
+{% comment %}Reusable article card. Expects `article` in context. {% endcomment %}
+<article class="article-card">
+    {% if article.header_image %}
+    <a class="article-card__media" href="{{ article.get_absolute_url }}">
+        <img src="{{ article.card_image.url }}" alt="{{ article.title }}" loading="lazy">
+    </a>
+    {% endif %}
+    <div class="article-card__body">
+        <h2 class="article-card__title">
+            <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
+        </h2>
+        {% if article.published_at %}
+        <p class="article-meta">{{ article.published_at|date:"F j, Y" }}</p>
+        {% endif %}
+        <p class="article-card__summary">{{ article.summary }}</p>
+        <a class="section-link" href="{{ article.get_absolute_url }}">Read article &rarr;</a>
+    </div>
+</article>
