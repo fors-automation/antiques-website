@@ -595,6 +595,16 @@ h1, h2, h3 {
     color: #a5603f;
 }
 
+/* Keep the More/Less link close to the description text; the spacing to the
+   next section moves below the toggle instead of above it. */
+.detail-desc:has(+ .clamp-toggle) {
+    margin-bottom: 0;
+}
+
+.detail-desc + .clamp-toggle {
+    margin-bottom: 1.5rem;
+}
+
 /* Inquiry form */
 .inquiry {
     border-top: 1px solid var(--border);
