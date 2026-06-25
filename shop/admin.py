@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from .models import Article, Category, Inquiry, Item, ItemImage
 
@@ -89,7 +90,7 @@ class ItemAdmin(admin.ModelAdmin):
                 'border-radius:4px;object-fit:cover;" />',
                 images[0].thumbnail.url,
             )
-        return format_html('<span style="color:#999;">No photo</span>')
+        return mark_safe('<span style="color:#999;">No photo</span>')
 
     @admin.display(description='Price', ordering='price')
     def price_display(self, obj):

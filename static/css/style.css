@@ -569,6 +569,32 @@ h1, h2, h3 {
     margin: 0;
 }
 
+/* Collapsible long text (description / provenance) */
+.clampable.is-clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+.clamp-toggle {
+    display: inline-block;
+    margin-top: 0.35rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--accent-dark);
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.clamp-toggle:hover {
+    color: #a5603f;
+}
+
 /* Inquiry form */
 .inquiry {
     border-top: 1px solid var(--border);
