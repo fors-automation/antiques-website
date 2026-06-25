@@ -70,9 +70,19 @@ def item_detail(request, slug):
     else:
         form = InquiryForm()
 
+    related_items = (
+        Item.objects.filter(category=item.category)
+        .exclude(pk=item.pk)
+        .exclude(status=Item.Status.SOLD)
+        .select_related('category')
+        .prefetch_related('images')
+        .order_by('-created_at')
+    )
+
     return render(request, 'shop/item_detail.html', {
         'item': item,
         'form': form,
+        'related_items': related_items,
     })
 
 

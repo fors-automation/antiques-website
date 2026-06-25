@@ -103,6 +103,19 @@
         {% endif %}
     </div>
 </article>
+
+{% if related_items %}
+<section class="section">
+    <div class="section-head">
+        <h2>More from {{ item.category.name }}</h2>
+    </div>
+    <div class="grid">
+        {% for related in related_items %}
+            {% include "shop/_item_card.html" with item=related %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
