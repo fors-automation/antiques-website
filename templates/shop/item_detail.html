@@ -58,7 +58,7 @@
         </p>
 
         {% if item.description %}
-        <div class="detail-desc">{{ item.description|linebreaks }}</div>
+        <div class="detail-desc clampable" data-clamp>{{ item.description|linebreaksbr }}</div>
         {% endif %}
 
         <dl class="detail-specs">
@@ -67,7 +67,7 @@
             {% if item.condition %}<dt>Condition</dt><dd>{{ item.get_condition_display }}</dd>{% endif %}
             {% if item.era %}<dt>Era / Period</dt><dd>{{ item.era }}</dd>{% endif %}
             {% if item.dimensions %}<dt>Dimensions</dt><dd>{{ item.dimensions }}</dd>{% endif %}
-            {% if item.provenance %}<dt>Provenance</dt><dd>{{ item.provenance|linebreaks }}</dd>{% endif %}
+            {% if item.provenance %}<dt>Provenance</dt><dd><div class="clampable" data-clamp>{{ item.provenance|linebreaksbr }}</div></dd>{% endif %}
         </dl>
 
         {% if item.is_sold %}
@@ -103,6 +103,19 @@
         {% endif %}
     </div>
 </article>
+
+{% if related_items %}
+<section class="section">
+    <div class="section-head">
+        <h2>More from {{ item.category.name }}</h2>
+    </div>
+    <div class="grid">
+        {% for related in related_items %}
+            {% include "shop/_item_card.html" with item=related %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
@@ -114,6 +127,27 @@
                 b.classList.remove('is-active');
             });
             btn.classList.add('is-active');
+        });
+    });
+
+    // Clamp long description/provenance to 3 lines with a More/Less toggle.
+    // Progressive enhancement: with JS off, the full text simply shows.
+    document.querySelectorAll('[data-clamp]').forEach(function (el) {
+        el.classList.add('is-clamped');
+        if (el.scrollHeight <= el.clientHeight + 1) {
+            el.classList.remove('is-clamped');  // 3 lines or fewer — no toggle needed
+            return;
+        }
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'clamp-toggle';
+        btn.textContent = 'More';
+        btn.setAttribute('aria-expanded', 'false');
+        el.insertAdjacentElement('afterend', btn);
+        btn.addEventListener('click', function () {
+            var clamped = el.classList.toggle('is-clamped');
+            btn.textContent = clamped ? 'More' : 'Less';
+            btn.setAttribute('aria-expanded', clamped ? 'false' : 'true');
         });
     });
 </script>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} — Glory Days Past{% endblock %}
+{% block meta_description %}{{ article.summary }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+    <a href="{% url 'shop:information' %}">Information</a>
+    <span class="breadcrumb__sep">&rsaquo;</span>
+    <span class="breadcrumb__current">{{ article.title }}</span>
+</nav>
+
+<article class="article">
+    {% if not article.is_published %}
+    <p class="article-draft-note">Draft preview — this article is not yet visible to the public.</p>
+    {% endif %}
+
+    <header class="article-header">
+        <h1 class="article-title">{{ article.title }}</h1>
+        {% if article.published_at %}
+        <p class="article-meta">{{ article.published_at|date:"F j, Y" }}</p>
+        {% endif %}
+    </header>
+
+    {% if article.header_image %}
+    <figure class="article-banner">
+        <img src="{{ article.banner_image.url }}" alt="{{ article.title }}">
+    </figure>
+    {% endif %}
+
+    {# Body HTML is written by the trusted owner-admin in the rich-text editor. #}
+    <div class="article-body">{{ article.body|safe }}</div>
+
+    <p class="article-back">
+        <a href="{% url 'shop:information' %}">&larr; Back to all articles</a>
+    </p>
+</article>
+{% endblock %}

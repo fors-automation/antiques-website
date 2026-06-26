@@ -2,13 +2,17 @@
 
 {% block title %}Glory Days Past — Antiques &amp; Curiosities{% endblock %}
 
-{% block content %}
+{% block hero %}
 <section class="hero hero--home">
-    <h1>Glory Days Past</h1>
-    <p class="lead">Carefully curated antiques, vintage finds, and one-of-a-kind curiosities.</p>
-    <a class="button" href="{% url 'shop:item_list' %}">Browse the collection</a>
+    <div class="hero--home__inner">
+        <h1>Glory Days Past</h1>
+        <p class="lead">Carefully curated antiques, vintage finds, and one-of-a-kind curiosities.</p>
+        <a class="button" href="{% url 'shop:item_list' %}">Browse the collection</a>
+    </div>
 </section>
+{% endblock %}
 
+{% block content %}
 {% if featured_items %}
 <section class="section">
     <div class="section-head">
