@@ -44,7 +44,26 @@
 
     <footer class="site-footer">
         <div class="site-footer__inner">
-            <p>&copy; {% now "Y" %} Glory Days Past. Every piece one-of-a-kind.</p>
+            <nav class="site-map" aria-label="Site map">
+                <div class="site-map__col">
+                    <h2 class="site-map__heading">Shop</h2>
+                    <ul class="site-map__links">
+                        <li><a href="{% url 'shop:item_list' %}">All items</a></li>
+                        {% for cat in nav_categories %}
+                        <li><a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="site-map__col">
+                    <h2 class="site-map__heading">Visit</h2>
+                    <ul class="site-map__links">
+                        <li><a href="{% url 'shop:home' %}">Home</a></li>
+                        <li><a href="{% url 'shop:information' %}">Information</a></li>
+                        <li><a href="{% url 'shop:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <p class="site-footer__copyright">&copy; {% now "Y" %} Glory Days Past. Every piece one-of-a-kind.</p>
         </div>
     </footer>
 

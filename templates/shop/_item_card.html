@@ -16,7 +16,7 @@
     </div>
     <div class="card-body">
         <h3 class="card-title">{{ item.title }}</h3>
-        <p class="card-meta">{{ item.category.name }}</p>
-        <p class="card-price">{{ item.display_price }}</p>
+        {% with primary=item.categories.all|first %}{% if primary %}<p class="card-meta">{{ primary.name }}</p>{% endif %}{% endwith %}
+        <p class="card-price{% if item.is_sold %} card-price--sold{% endif %}">{% if item.is_sold %}Sold{% else %}{{ item.display_price }}{% endif %}</p>
     </div>
 </a>

@@ -1,13 +1,15 @@
 {% extends "base.html" %}
 
 {% block title %}{{ item.title }} — Glory Days Past{% endblock %}
-{% block meta_description %}{{ item.title }} — {{ item.display_price }}{% if item.era %}, {{ item.era }}{% endif %}. {{ item.description|striptags|truncatewords:25 }}{% endblock %}
+{% block meta_description %}{{ item.title }}{% if not item.is_sold %} — {{ item.display_price }}{% endif %}{% if item.era %}, {{ item.era }}{% endif %}. {{ item.description|striptags|truncatewords:25 }}{% endblock %}
 
 {% block content %}
 <nav class="breadcrumb">
     <a href="{% url 'shop:item_list' %}">Collection</a>
+    {% if primary_category %}
     <span class="breadcrumb__sep">&rsaquo;</span>
-    <a href="{{ item.category.get_absolute_url }}">{{ item.category.name }}</a>
+    <a href="{{ primary_category.get_absolute_url }}">{{ primary_category.name }}</a>
+    {% endif %}
     <span class="breadcrumb__sep">&rsaquo;</span>
     <span class="breadcrumb__current">{{ item.title }}</span>
 </nav>
@@ -47,7 +49,7 @@
         <h1 class="detail-title">{{ item.title }}</h1>
 
         <p class="detail-price">
-            {{ item.display_price }}
+            {% if not item.is_sold %}{{ item.display_price }}{% endif %}
             {% if item.is_sold %}
                 <span class="badge badge--sold">Sold</span>
             {% elif item.is_reserved %}
@@ -62,8 +64,8 @@
         {% endif %}
 
         <dl class="detail-specs">
-            <dt>Category</dt>
-            <dd><a href="{{ item.category.get_absolute_url }}">{{ item.category.name }}</a></dd>
+            <dt>{% if item.categories.all|length > 1 %}Categories{% else %}Category{% endif %}</dt>
+            <dd>{% for cat in item.categories.all %}<a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a>{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</dd>
             {% if item.condition %}<dt>Condition</dt><dd>{{ item.get_condition_display }}</dd>{% endif %}
             {% if item.era %}<dt>Era / Period</dt><dd>{{ item.era }}</dd>{% endif %}
             {% if item.dimensions %}<dt>Dimensions</dt><dd>{{ item.dimensions }}</dd>{% endif %}
@@ -104,10 +106,10 @@
     </div>
 </article>
 
-{% if related_items %}
+{% if related_items and primary_category %}
 <section class="section">
     <div class="section-head">
-        <h2>More from {{ item.category.name }}</h2>
+        <h2>More from {{ primary_category.name }}</h2>
     </div>
     <div class="grid">
         {% for related in related_items %}

@@ -43,13 +43,13 @@ class ItemImageInline(admin.TabularInline):
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    # --- List view: photo, title, category, price, status (+ quick toggles) ---
+    # --- List view: photo, title, categories, price, status (+ quick toggles) ---
     list_display = (
-        'thumb', 'title', 'category', 'price_display', 'status', 'featured',
+        'thumb', 'title', 'category_list', 'price_display', 'status', 'featured',
     )
     list_display_links = ('thumb', 'title')
     list_editable = ('status', 'featured')
-    list_filter = ('status', 'category', 'featured', 'condition')
+    list_filter = ('status', 'categories', 'featured', 'condition')
     search_fields = ('title', 'description', 'era', 'provenance')
     search_help_text = 'Search by title, description, era, or provenance.'
     date_hierarchy = 'created_at'
@@ -62,9 +62,10 @@ class ItemAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_at', 'sold_at')
     inlines = [ItemImageInline]
+    filter_horizontal = ('categories',)
     fieldsets = (
         ('The basics', {
-            'fields': ('title', 'category', 'price', 'currency', 'status', 'featured'),
+            'fields': ('title', 'categories', 'price', 'currency', 'status', 'featured'),
         }),
         ('Details buyers care about', {
             'fields': ('description', 'condition', 'era', 'dimensions', 'provenance'),
@@ -78,8 +79,7 @@ class ItemAdmin(admin.ModelAdmin):
     )
 
     def get_queryset(self, request):
-        # Prefetch photos so the thumbnail column doesn't run a query per row.
-        return super().get_queryset(request).prefetch_related('images')
+        return super().get_queryset(request).prefetch_related('images', 'categories')
 
     @admin.display(description='Photo')
     def thumb(self, obj):
@@ -91,6 +91,10 @@ class ItemAdmin(admin.ModelAdmin):
                 images[0].thumbnail.url,
             )
         return mark_safe('<span style="color:#999;">No photo</span>')
+
+    @admin.display(description='Categories')
+    def category_list(self, obj):
+        return ', '.join(obj.categories.values_list('name', flat=True)) or '—'
 
     @admin.display(description='Price', ordering='price')
     def price_display(self, obj):

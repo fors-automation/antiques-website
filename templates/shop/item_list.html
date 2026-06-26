@@ -16,6 +16,14 @@
     {% endfor %}
 </nav>
 
+<div class="sold-toggle">
+    {% if show_sold %}
+        <a href="{% if category %}{{ category.get_absolute_url }}{% else %}{% url 'shop:item_list' %}{% endif %}">Hide sold items</a>
+    {% else %}
+        <a href="{% if category %}{{ category.get_absolute_url }}{% else %}{% url 'shop:item_list' %}{% endif %}?sold=1">Include sold items</a>
+    {% endif %}
+</div>
+
 {% if page_obj.object_list %}
 <div class="grid">
     {% for item in page_obj %}
@@ -45,11 +53,4 @@
 </p>
 {% endif %}
 
-<div class="sold-toggle">
-    {% if show_sold %}
-        <a href="{% if category %}{{ category.get_absolute_url }}{% else %}{% url 'shop:item_list' %}{% endif %}">Hide sold items</a>
-    {% else %}
-        <a href="{% if category %}{{ category.get_absolute_url }}{% else %}{% url 'shop:item_list' %}{% endif %}?sold=1">View sold items</a>
-    {% endif %}
-</div>
 {% endblock %}

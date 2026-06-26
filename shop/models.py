@@ -51,12 +51,12 @@ class Item(models.Model):
         help_text="Describe the piece and its story — anything a buyer would "
                   "like to know. This shows on the item's page.",
     )
-    category = models.ForeignKey(
+    categories = models.ManyToManyField(
         Category,
-        on_delete=models.PROTECT,
         related_name='items',
-        help_text="Choose a category. You can add new categories under "
-                  "“Categories” on the main admin page.",
+        blank=True,
+        help_text='Choose one or more categories. You can add new categories'
+                  ' under “Categories” on the main admin page.',
     )
     # Money is stored as Decimal, never float. Currency is recorded explicitly.
     price = models.DecimalField(

@@ -11,7 +11,7 @@ from .models import Article, Category, Item
 def home(request):
     available = Item.objects.filter(
         status=Item.Status.AVAILABLE
-    ).select_related('category').prefetch_related('images')
+    ).prefetch_related('categories', 'images')
     return render(request, 'shop/home.html', {
         'featured_items': list(available.filter(featured=True)[:6]),
         'recent_items': available.order_by('-created_at')[:8],
@@ -21,10 +21,10 @@ def home(request):
 
 def item_list(request, slug=None):
     category = None
-    items = Item.objects.select_related('category').prefetch_related('images')
+    items = Item.objects.prefetch_related('categories', 'images')
     if slug:
         category = get_object_or_404(Category, slug=slug)
-        items = items.filter(category=category)
+        items = items.filter(categories=category).distinct()
 
     # By default sold items are hidden; the "View sold items" toggle reveals them.
     show_sold = request.GET.get('sold') == '1'
@@ -51,7 +51,7 @@ def item_list(request, slug=None):
 
 def item_detail(request, slug):
     item = get_object_or_404(
-        Item.objects.select_related('category').prefetch_related('images'),
+        Item.objects.prefetch_related('categories', 'images'),
         slug=slug,
     )
 
@@ -70,18 +70,20 @@ def item_detail(request, slug):
     else:
         form = InquiryForm()
 
+    primary_category = item.categories.first()
     related_items = (
-        Item.objects.filter(category=item.category)
+        Item.objects.filter(categories__in=item.categories.all())
         .exclude(pk=item.pk)
         .exclude(status=Item.Status.SOLD)
-        .select_related('category')
-        .prefetch_related('images')
+        .prefetch_related('categories', 'images')
         .order_by('-created_at')
+        .distinct()
     )
 
     return render(request, 'shop/item_detail.html', {
         'item': item,
         'form': form,
+        'primary_category': primary_category,
         'related_items': related_items,
     })
 
